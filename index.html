@@ -167,13 +167,8 @@
         });
       }
     }
-
-    // ❌ Không sắp xếp lại nữa, giữ nguyên thứ tự từ file CSV
-
     renderTable(students);
     updateStats(students);
-
-    // Tìm kiếm theo SBD
     document.getElementById("searchBox").addEventListener("input", (e) => {
       const val = e.target.value.trim();
       const filtered = students.filter(s => s.sbd.startsWith(val));
