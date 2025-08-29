@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <title>Thống kê Sinh viên - ĐHSPKT Đà Nẵng</title>
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      margin: 0;
+      background: #f9fafc;
+    }
+    header {
+      background: #005baa;
+      color: white;
+      padding: 12px 20px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+    header img {
+      height: 50px;
+    }
+    nav a {
+      margin-left: 20px;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 8px 14px;
+      border-radius: 6px;
+      transition: 0.3s;
+    }
+    nav a.home {
+      color: white;
+    }
+    nav a.rank {
+      background: #ffcc00;
+      color: #333;
+    }
+    nav a.rank:hover {
+      background: #ffdb4d;
+    }
+    main {
+      padding: 20px;
+    }
+    h1 {
+      text-align: center;
+      color: #333;
+    }
+    .copyright {
+      text-align: center;
+      font-size: 14px;
+      font-weight: bold;
+      color: #005baa;
+      margin-bottom: 10px;
+    }
+    .stats {
+      margin: 15px 0;
+      padding: 10px;
+      background: #eaf3fc;
+      border-left: 4px solid #005baa;
+      font-size: 16px;
+    }
+    .search-box {
+      margin: 20px 0;
+      text-align: center;
+    }
+    .search-box input {
+      padding: 8px;
+      width: 220px;
+      border: 1px solid #ccc;
+      border-radius: 5px;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      margin-top: 15px;
+      background: white;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    th, td {
+      border: 1px solid #ccc;
+      padding: 8px 10px;
+      text-align: center;
+    }
+    th {
+      background: #005baa;
+      color: white;
+    }
+    tr:nth-child(even) {
+      background: #f5f5f5;
+    }
+    .note {
+      margin-top: 15px;
+      font-style: italic;
+      color: #444;
+      text-align: center;
+    }
+    footer {
+      margin-top: 20px;
+      text-align: center;
+      padding: 10px;
+      background: #005baa;
+      color: white;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div style="display:flex;align-items:center;gap:10px;">
+      <img src="https://upload.wikimedia.org/wikipedia/commons/4/42/Logo_Đại_h%E1%BB%8Dc_Sư_phạm_Kỹ_thuật_Đà_Nẵng.png" alt="Logo UTE">
+      <span><b>Đại học Sư phạm Kỹ thuật Đà Nẵng</b></span>
+    </div>
+    <nav>
+      <a href="#" class="home">Trang chủ</a>
+      <a href="https://khoihoangton.github.io/rankscore/" target="_blank" class="rank">⚡ Tra cứu điểm</a>
+    </nav>
+  </header>
+  <main>
+    <div class="copyright">📌 BẢN QUYỀN: TÔN HOÀNG KHÔI - KHOA CNTT K25</div>
+    <h1>Thống kê Sinh viên từ file CSV</h1>
+    <div class="stats" id="stats"></div>
+
+    <div class="search-box">
+      <input type="text" id="searchBox" placeholder="Nhập SBD (ví dụ: 35)...">
+    </div>
+
+    <table id="dataTable">
+      <thead>
+        <tr>
+          <th>STT</th>
+          <th>SBD</th>
+          <th>Họ và Tên</th>
+          <th>Ngày sinh</th>
+          <th>Giới tính</th>
+          <th>Trường</th>
+          <th>Phòng</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+
+    <div class="note">
+      🔎 Nút <b>Tra cứu điểm</b> dùng để xem xếp hạng điểm thi của bạn trực tiếp trên hệ thống.
+    </div>
+  </main>
+  <footer>
+    © 2025 Đại học Sư phạm Kỹ thuật Đà Nẵng
+  </footer>
+
+  <script>
+  async function loadCSV() {
+    const response = await fetch("dl.csv");
+    const data = await response.text();
+    const rows = data.split("\n").filter(r => r.trim() !== "");
+
+    let students = [];
+    for (let row of rows) {
+      const cols = row.split(",").map(c => c.replace(/^"|"$/g, "").trim());
+      if (cols.length >= 10) {
+        students.push({
+          stt: cols[0],
+          sbd: cols[1],
+          name: cols[2],
+          dob: cols[4],   // ngày sinh
+          gender: cols[5],
+          school: cols[6],
+          room: cols[7]
+        });
+      }
+    }
+
+    // ❌ Không sắp xếp lại nữa, giữ nguyên thứ tự từ file CSV
+
+    renderTable(students);
+    updateStats(students);
+
+    // Tìm kiếm theo SBD
+    document.getElementById("searchBox").addEventListener("input", (e) => {
+      const val = e.target.value.trim();
+      const filtered = students.filter(s => s.sbd.startsWith(val));
+      renderTable(filtered);
+      updateStats(filtered);
+    });
+  }
+
+  function renderTable(data) {
+    const tbody = document.querySelector("#dataTable tbody");
+    tbody.innerHTML = "";
+    data.forEach(s => {
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td>${s.stt}</td>
+        <td>${s.sbd}</td>
+        <td>${s.name}</td>
+        <td>${s.dob}</td>
+        <td>${s.gender}</td>
+        <td>${s.school}</td>
+        <td>${s.room}</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  function updateStats(data) {
+    const total = data.length;
+    const male = data.filter(s => s.gender === "Nam").length;
+    const female = data.filter(s => s.gender === "Nữ").length;
+    document.getElementById("stats").textContent = 
+      `Tổng số: ${total} | Nam: ${male} | Nữ: ${female}`;
+  }
+
+  loadCSV();
+</script>
+
+</body>
+</html>
